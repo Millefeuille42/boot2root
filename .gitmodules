@@ -1,0 +1,3 @@
+[submodule "tools/nikto"]
+	path = tools/nikto
+	url = https://github.com/sullo/nikto.git
