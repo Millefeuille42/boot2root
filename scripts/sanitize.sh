@@ -1,0 +1,1 @@
+cat file.c | tr -d '\n' | tr '}' '\n' | sed 's/$/}/' | grep -v 'void useless()' | sed 's,*/,,' | sed 's/;/;\n/g' >| file_san.c

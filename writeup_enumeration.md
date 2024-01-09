@@ -69,6 +69,13 @@ On liste les différents utilisateurs du forum:
 - wandre
 - thor
 
+Et on y trouve un mot de passe a la ligne suivante :
+` Oct 5 08:45:29 BornToSecHackMe sshd[7547]: Failed password for invalid user !q\]Ej?*5K5cy*AJ from 161.202.39.38 port 57764 ssh2`
+Autant que la string `!q\]Ej?*5K5cy*AJ` est identifiée comme utilisateur, on devine facilement que ça devrait etre un mot de passe
+
+En essayant ce mdp un peu partout (ssh puis forum) avec tous les users connus,
+on trouve que ce mdp appartient à lmezard sur le forum. La suite dans `writeup_lmezard.md`
+
 Il y a aussi un formulaire de contact, un potentiel endroit a exploiter
 En appuyant sur le lien `Users` on découvre que l'on peut envoyer des mails à `admin`
 
