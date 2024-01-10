@@ -45,5 +45,5 @@ else:
     print("Public speaking is very easy.")
     print(generate_numbers())
     print("1 b 214")
-    print("9 austinpowers") # nth number of the fibonnaci suite (offset by one) + the secret password
+    print("9") # nth number of the fibonnaci suite (offset by one) + the secret password
     print(encode_string("giants"))
