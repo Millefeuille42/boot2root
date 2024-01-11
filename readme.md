@@ -20,3 +20,5 @@ git submodule add "https://github.com/sullo/nikto.git" "tools/<nom de l'outil>"
 ## Bosser
 Se créer un document `writeup_<pseudo/login>.md`
 Documenter TOUT dedans, les recherches, même les essais infructueux !
+
+TODO: Faire un exploit dirtycow avec un fichier python et php

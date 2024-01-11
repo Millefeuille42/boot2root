@@ -1,8 +1,65 @@
-# Forum
+# Boot2Root -- Normal Route
 
-## Rappel
+## Step 1 - Trouver le serveur
+On a pas l'IP du serveur.
+On lance un `nmap -sn <mask>` pour énumerer les serveurs qui répondent au ping
 
-Utilisateurs: 
+Heureusement on trouve une IP différente de la notre qui répond au ping
+
+## Step 2 - Enumerer
+### Hote et services
+On lance alors on `nmap -p- -A -sV -T4 <ip>` pour obtenir un max d'info sur le serveur
+
+        On y trouve différent services:
+        - ftp sur le port 21 (vsftpd 2.0.8 or later)
+        - ssh sur le port 22 (OpenSSH 5.9p1)
+        - http(s) sur le port 80 et 443 (Apache httpd 2.2.22)
+        - imap(s) sur le port 143 et 993 (Dovecot imapd)
+
+        On conserve le log sous le coude au cas ou on puisse en tirer plus d'infos utiles.
+
+### HTTP
+        On décide de commencer par le serveur http(s)
+        On lance alors `scripts/dirbuster.py` sur le port 80, et on ne tire rien de bien probant pour le moment
+        On essaie alors en https, et la on obtient plus d'infos
+
+        Différentes routes
+        - `/forum`
+        - `/phpmyadmin`
+        - `/webmail`
+        La plupart des routes nosu donnent des pistes a explorer.
+
+#### PHPMyAdmin
+        On décide d'aller vers le plus évident: PHPMyAdmin
+
+        En allant sur la route `/phpmyadmin` on trouve deux infos intéressantes:
+        - L'URL de l'image contient un token `token=3e6cab1c9cf8cda6115b523f5d6b353`
+        - En cliquant sur le bouton d'aide du formulaire de login, on a accès au numéro de version de PHPMyAdmin
+        a savoir `3.4.10.1`
+
+        De la page d'aide on deviner quelques infos supplémentaires
+        - PHP version 5.2.0 minimum
+        - MySQL Version 5.0 minimum
+        - Extension ZIP de PHP
+
+#### Webmail
+        On va ensuite voir le webmail
+        sur la route `/webmail` on trouve sur la page d'accueil la version `1.4.22`
+
+#### Forum
+        On va ensuite voir le forum
+
+        On identifie la brique de forum: `my little forum`
+        
+        En appuyant sur le lien `Users` on découvre que l'on peut envoyer des mails à `admin`
+        Il y a aussi un formulaire de contact, un potentiel endroit a exploiter.
+
+## Step 3 - Poteaux
+En énumérant les posts on en voit un appelé `Probleme login ?` qui contient des logs ssh
+On peut voir que quelqu'un a pu se connecter en ssh sous l'utilisateur `admin`
+et que l'on peut aussi se connecter en tant que `root`.
+
+On liste les différents utilisateurs du forum:
 - admin
 - lmezard
 - qudevide
@@ -10,12 +67,15 @@ Utilisateurs:
 - wandre
 - thor
 
-Mot de passe: `!q\]Ej?*5K5cy*AJ`
+Et on y trouve un mot de passe a la ligne suivante :
+` Oct 5 08:45:29 BornToSecHackMe sshd[7547]: Failed password for invalid user !q\]Ej?*5K5cy*AJ from 161.202.39.38 port 57764 ssh2`
+Autant que la string `!q\]Ej?*5K5cy*AJ` est identifiée comme utilisateur, on devine facilement que ça devrait etre un mot de passe
 
 En essayant ce mdp un peu partout (ssh puis forum) avec tous les users connus,
 on trouve que ce mdp appartient à lmezard sur le forum.
 
-## Gagner l'acces
+En essayant ce mdp un peu partout (ssh puis forum) avec tous les users connus,
+on trouve que ce mdp appartient à lmezard sur le forum.
 
 Depuis la page utilisateur de lmezard, on trouve son mail
 `laurie@borntosec.net`
@@ -30,7 +90,7 @@ on tente alors de se connecter a PHPMyadmin, succes
 On explore alors un peu, on tente d'identifer les hash des mots de passe, sans succes
 on passe lmezard en admin du forum, ça ne nous aide pas plus...
 
-## Reverse shell
+## Step 4 - Reverse shell
 
 Apres beaucoup de temps a chercher et tenter des trucs, on a une idée:
 
@@ -83,7 +143,7 @@ On lance le script grace a notre fichier PHP et hop, ça fonctionne !
 
 On stabilise le shell a l'aide du protocole suivant:
 ```
-python3 -c 'import pty;pty.spawn("/bin/bash")'
+python -c 'import pty;pty.spawn("/bin/bash")'
 ```
 puis CTRL-Z
 ```
@@ -96,7 +156,7 @@ export TERM=xterm
 
 On a maintenant un reverse shell propre sur le serveur.
 
-## Sur le serveur
+## Step 5 - Sanitize
 
 Une fois sur le serveur on explore un peu.
 Notre première trouvaille intéressante est dans `/home`
@@ -132,7 +192,7 @@ on s'execute et ça fonctionne, on est connectés en ssh en tant que laurie
 
 Depuis le compte de laurie, on trouve deux fichiers, bomb et readme, encore une enignme.
 
-## Da bomb
+## Step 6 - Da bomb
 La bombe a 6 niveaux, chaque niveau a son code. Le mot de passe de thor correspond
 aux 6 codes cote a cote.
 
@@ -162,16 +222,41 @@ On a pas trouvé le mdp de la phase secrete, mais en tentant des substitutions d
 de la 6 on trouve ce mot de passe pour thor:
 
 `Publicspeakingisveryeasy.126241207201b2149opekmq426135`
-Cette partie est très étrange et personne n'a réellement trouvé d'exu même,
+Cette partie est très étrange et personne n'a réellement trouvé d'eux même,
 A chaque fois, le mot de passe apparait par magie...
 
-646da671ca01bb5d84dbb5fb2238dc8e
-`./exploit_me $(python -c "print('A' * 140 + '\x60\xb0\xe6\xb7' + 'A'*4 + '\x58\xcc\xf8\xb7')")`
+## Step 7 - Tourne et retourne
 
+On lit un fichier avec des instructions,
+Le nom du fichier et les instructions nous permettent facilement de deviner qu'il s'agit
+de code pour la librairie `turtle` de `python`. On convertit alors les instructions en code
+avec quelques coups de `sed`, on lance et on lit `SLASH`.
 
+La fin du fichier nous dit
+> Can you digest this message
+
+On devine qu'on doit faire un digest md5 du message, ça nous donne le mdp
+`646da671ca01bb5d84dbb5fb2238dc8e` pour zaz.
+
+Super nickel !
+
+## Step 8 - Piscine a débordement
+
+On trouve un binaire nommé `exploit_me`.
+En le décompilant on constate que ça ne fait que `strcopy` l'entrée utilisateur
+dans un buffer limité et ça le print. C'est la porte d'entrée pour un buffer overflow.
+
+On s'instruit sur comment faire.
+Avec un peu d'exploration avec radare2 et gdb on choppe l'addresse de `system()` et de `/bin/sh`
+
+Ce qui nous donne ce shellcode:
+```
+./exploit_me `python -c "print('A' * 140 + '\x60\xb0\xe6\xb7AAAA\x58\xcc\xf8\xb7')"`
+```
+
+Et bim on est root.
 
 ## Sources
-
 Buffer overflow: https://beta.hackndo.com/buffer-overflow/
 Oneliners de reverse shell: https://0xss0rz.github.io/2020-05-10-Oneliner-shells/
 Stabiliser un reverse shell: https://brain2life.hashnode.dev/how-to-stabilize-a-simple-reverse-shell-to-a-fully-interactive-terminal

