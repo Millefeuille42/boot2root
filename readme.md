@@ -7,7 +7,7 @@
 If you are reading this, you are probably trying to copy our work or even worse
 > "TrYinG to GeT sOme InsPiraTion"
 
-[Actual depiction of you](figs/spongebob.gif)
+![Actual depiction of you](figs/spongebob.gif)
 
 Don't do this, there is multiple reasons for that:
 - Seriously? Cheating?

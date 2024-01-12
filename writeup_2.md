@@ -26,7 +26,7 @@ mv /tmp/passwd.bak /etc/passwd
 su root
 ```
 
-[polka cow](../figs/polka.gif)
+![polka cow](../figs/polka.gif)
 ## Sources:
 Privilege escalation reference: https://book.hacktricks.xyz/linux-hardening/privilege-escalation
 DirtyCow Exploit: https://github.com/evait-security/ClickNRoot/blob/master/1/exploit.c
