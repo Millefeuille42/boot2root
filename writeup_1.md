@@ -20,7 +20,7 @@ On lance alors on `nmap -p- -A -sV -T4 <ip>` pour obtenir un max d'info sur le s
 
 ### HTTP
         On décide de commencer par le serveur http(s)
-        On lance alors `scripts/dirbuster.py` sur le port 80, et on ne tire rien de bien probant pour le moment
+        On lance alors `nikto` sur le port 80, et on ne tire rien de bien probant pour le moment
         On essaie alors en https, et la on obtient plus d'infos
 
         Différentes routes

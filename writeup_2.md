@@ -32,3 +32,4 @@ Et hop, root.
 ## Sources:
 References élevation de privilèges: https://book.hacktricks.xyz/linux-hardening/privilege-escalation
 Exploit DirtyCow: https://github.com/evait-security/ClickNRoot/blob/master/1/exploit.c
+Explication DirtyCow: https://github.com/thaddeuspearson/Understanding_DirtyCOW
