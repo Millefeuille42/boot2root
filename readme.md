@@ -1,7 +1,27 @@
 # Boot2Root
 
+----------
+
+!! STOP !!
+
+If you are reading this, you are probably trying to copy our work or even worse
+> "TrYinG to GeT sOme InsPiraTion"
+
+[Actual depiction of you](https://images-ext-2.discordapp.net/external/6lLbSCXpqZZzvIeb6uEsaVkxBNvCU8Jb4MGvJyDD7t8/https/media.tenor.com/kwoZiw3sdlwAAAPo/spongebob-cartoon.mp4)
+
+Don't do this, there is multiple reasons for that:
+- Seriously? Cheating?
+- You are not helping yourself with that
+- You are not helping the other students
+- You are not helping the school, setting mediocrity as a standard
+- We know where you live, and if we don't, we will find you
+and we will do horendous things to your computer, like installing Windows (yuck)!
+You shouldn't try us, you have been warned!
+
+----------
+
 Avant de commencer, faire les commandes
-```bash
+```
 git submodule init
 git submodule update
 ```
@@ -13,7 +33,7 @@ et mettre le mode de réseau de la VM en "host_only" (sur VirtualBox)
 
 ## Ajouter un tool
 Faire la commande
-```bash
+```
 git submodule add "https://github.com/sullo/nikto.git" "tools/<nom de l'outil>"
 ```
 
