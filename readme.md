@@ -7,7 +7,7 @@
 If you are reading this, you are probably trying to copy our work or even worse
 > "TrYinG to GeT sOme InsPiraTion"
 
-[Actual depiction of you](https://images-ext-2.discordapp.net/external/6lLbSCXpqZZzvIeb6uEsaVkxBNvCU8Jb4MGvJyDD7t8/https/media.tenor.com/kwoZiw3sdlwAAAPo/spongebob-cartoon.mp4)
+[Actual depiction of you](figs/spongebob.gif)
 
 Don't do this, there is multiple reasons for that:
 - Seriously? Cheating?
