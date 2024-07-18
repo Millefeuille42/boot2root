@@ -2,6 +2,6 @@
 
 Starting from `Step 5 - Sanitize`
 
-Type `fakeroot` :p
+Type `fakeroot`
 
 ![we are super hackers](../figs/breezy-hacker.gif)
