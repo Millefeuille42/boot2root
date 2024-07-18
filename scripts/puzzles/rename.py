@@ -10,8 +10,16 @@ def rename_files():
 
     for file_path in file_list:
         with open(file_path, "r") as file:
+            file_num = 0
+            final_data = ""
             for line in file:
                 n = extract_file_number(line.strip())
+                if n is not None:
+                    file_num = n
+                final_data = final_data + line
+            with open(str(file_num) + ".txt", "w") as ff:
+                ff.write(final_data)
+                    
 
 def merge_files():
     file_list = [filename for filename in os.listdir() if filename.endswith(".txt")]

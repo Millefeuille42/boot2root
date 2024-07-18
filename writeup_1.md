@@ -166,7 +166,7 @@ Using `file` command on the `fun` file, we determine it's a tar archive.
 We extract it and inspect the contents.
 
 We find many PCAP files containing portions of a C program. The files are out of order but numbered.
-Using the `scripts/puzzles/merge.py` script, we reorder and concatenate them into a single file.
+Using the `scripts/puzzles/rename.py` script, we reorder and concatenate them into a single file.
 
 We clean up unwanted data with sanitize.sh and do some manual processing.
 We compile the program, run it and voila:
